@@ -6,13 +6,10 @@ ARG CADDY_VERSION=2
 FROM --platform=$BUILDPLATFORM caddy:${CADDY_VERSION}-builder AS builder
 ARG TARGETOS TARGETARCH TARGETVARIANT
 
-# Modules built into the image. This is the only list: the daily check reads it too.
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} CGO_ENABLED=0 XCADDY_PRINT_VERSION=0 \
-    xcaddy build \
-    --with github.com/caddy-dns/cloudflare \
-    --with github.com/WeidiDeng/caddy-cloudflare-ip \
-    --with github.com/fvbommel/caddy-combine-ip-ranges \
-    --with github.com/mholt/caddy-ratelimit
+# Build Caddy with the PPH DNS module
+RUN xcaddy build \
+    --with github.com/caddy-dns/pph \
+    --with github.com/fvbommel/caddy-combine-ip-ranges
 
 # Slim image: our own Alpine base (the official image minus its stock binary) with the
 # custom-built binary, so the image carries one Caddy binary instead of two. The builder
