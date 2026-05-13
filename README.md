@@ -1,8 +1,8 @@
 
-# Caddy Cloudflare
-> A fully integrated Caddy Docker image featuring Cloudflare DNS-01 ACME validation
+# Caddy PPH
+> A fully integrated Caddy Docker image featuring PPH DNS-01 ACME validation
 
-Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 ACME challenges. Streamline your SSL certificate management and ensure your server stays secure without manual updates, making it an effortless and reliable solution.
+Deploy a hassle-free Caddy server with built-in support for PPH DNS-01 ACME challenges. Streamline your SSL certificate management and ensure your server stays secure without manual updates, making it an effortless and reliable solution.
 
 
 ## Table of Contents
@@ -25,8 +25,7 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 
 - **Automated Builds**: Automatically checks for new Caddy releases and builds Docker images.
 - **Continuous Integration**: Utilizes GitHub Actions for seamless CI/CD.
-- **Cloudflare DNS Integration**: Integrates Cloudflare DNS for automatic SSL certificate management.
-- **Cloudflare Proxy IP Trust**: Includes the [caddy-cloudflare-ip](https://github.com/WeidiDeng/caddy-cloudflare-ip) module to automatically trust Cloudflare’s proxy IP ranges, ensuring correct client IP addresses are passed through and logged.
+- **PPH DNS Integration**: Integrates PPH DNS for automatic SSL certificate management.
 - **Multi-Platform Support**: Builds images for multiple architectures, including `amd64`, `arm64`, `arm/v7` (Raspberry Pi), `ppc64le`, and `s390x` , ensuring compatibility across a wide range of devices and systems.
 - **Alpine-based Image**: Provides a lightweight Alpine-based image for smaller size and faster deployment.
 - **Manual Trigger**: Allows manual triggering of the build process.
@@ -39,17 +38,15 @@ Deploy a hassle-free Caddy server with built-in support for Cloudflare DNS-01 AC
 To use the pre-built Docker image, pull it from the GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:latest
-docker pull caddybuilds/caddy-cloudflare:latest
+docker pull ghcr.io/cellebyte/caddy-pph:latest
 # alpine
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:alpine
-docker pull caddybuilds/caddy-cloudflare:alpine
+docker pull ghcr.io/cellebyte/caddy-pph:alpine
 ```
 You can use the image in your Docker setup. Here is an example `docker-compose.yml` file:
 ```yaml
 services:
   caddy:
-    image: ghcr.io/caddybuilds/caddy-cloudflare:latest
+    image: ghcr.io/cellebyte/caddy-pph:latest
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -63,7 +60,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     environment:
-      - CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+      - PPH_API_TOKEN=your_pph_api_token
 
 volumes:
   caddy_data:
@@ -72,10 +69,10 @@ volumes:
 ```
 Defining the data volume as [external](https://docs.docker.com/compose/compose-file/compose-file-v3/#external) makes sure `docker-compose down` does not delete the volume. You may need to create it manually using `docker volume create caddy_data`.
 
-Replace `your_cloudflare_api_token` with your actual Cloudflare API token.
+Replace `your_pph_api_token` with your actual PPH API token.
 
 ## Sample Caddyfile
-Here is a sample Caddyfile configuration to get you started. This configuration sets up the ACME DNS challenge provider to use Cloudflare and serves a simple static site.
+Here is a sample Caddyfile configuration to get you started. This configuration sets up the ACME DNS challenge provider to use PPH and serves a simple static site.
 
 ### Global Configuration (Use DNS Challenge for All Sites)
 In this configuration, the ACME DNS challenge provider is set globally, so it applies to all sites served by Caddy.
@@ -87,8 +84,8 @@ In this configuration, the ACME DNS challenge provider is set globally, so it ap
 # domain name.
 
 {
-  # Set the ACME DNS challenge provider to use Cloudflare for all sites
-  acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+  # Set the ACME DNS challenge provider to use PPH for all sites
+  acme_dns pph {env.PPH_API_TOKEN}
 }
 
 example.com {
@@ -141,7 +138,7 @@ example.com {
     encode gzip
 
     tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        dns pph {env.PPH_API_TOKEN}
     }
 }
 
@@ -151,112 +148,20 @@ another-example.com {
     encode gzip
 
     tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        dns pph {env.PPH_API_TOKEN}
     }
 }
 ```
 
-### Sample Caddyfile with Cloudflare IP Trust
-
-```
-{
-  acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-
-  servers {
-		trusted_proxies cloudflare
-		client_ip_headers Cf-Connecting-Ip
-	}
-
-}
-
-example.com {
-    root * /usr/share/caddy
-    file_server
-    encode gzip
-}
-```
-
-With this setup:  
-- Requests proxied through Cloudflare will correctly populate `X-Forwarded-For` headers.  
-- Access logs will show the **real client IP** instead of Cloudflare’s edge server IPs.  
-
-
 ## Configuration
-### Creating a Cloudflare API Token
-
-To use the Cloudflare DNS challenge provider, you'll need to create an API token in your Cloudflare account. Follow these steps to create a token with the necessary permissions:
-
-1. **Log in to Cloudflare**:
-   - Go to the Cloudflare dashboard at [dash.cloudflare.com](https://dash.cloudflare.com) and log in with your account credentials.
-
-2. **Navigate to API Tokens**:
-   - Click on your profile icon in the top right corner of the dashboard.
-   - Select "My Profile" from the dropdown menu.
-   - In the left sidebar, click on "API Tokens".
-
-3. **Create a Custom Token**:
-   - Click the "Create Token" button.
-   - Under the "Custom Token" section, click "Get started".
-
-4. **Configure Token Permissions**:
-   - Give your token a name, such as "Caddy DNS-01 Challenge".
-   - Set the permissions as follows:
-     - **Zone - Zone - Read**: Allows the token to Read DNS Zones
-     - **Zone - DNS - Edit**: Allows the token to edit DNS records, which is required for the DNS-01 challenge.
-
-5. **Specify Account and Zone Resources**:
-   - Under "Zone Resources", set the following:
-     - **Include - All Zones**: If you want the token to work with all your zones.
-     - **Include - Specific Zone**: Select the specific zone(s) you want the token to have access to.
-
-6. **Create and Store the Token**:
-   - Click the "Continue to summary" button.
-   - Review your token settings and click "Create Token".
-   - Copy the generated token and store it in a secure place. You will need this token to set up the environment variable in your Caddy configuration.
-
-7. **Set the Environment Variable**:
-   - In your deployment environment, set the environment variable `CLOUDFLARE_API_TOKEN` to the value of the token you just created.
-
-For example, in a Docker environment, you can set this environment variable in your `docker-compose.yml` file:
-
-```yaml
-services:
-  caddy:
-    image: ghcr.io/caddybuilds/caddy-cloudflare:latest
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - $PWD/Caddyfile:/etc/caddy/Caddyfile
-      - $PWD/site:/srv
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      - CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
-
-volumes:
-  caddy_data:
-    external: true
-  caddy_config:
-```
-Defining the data volume as [external](https://docs.docker.com/compose/compose-file/compose-file-v3/#external) makes sure `docker-compose down` does not delete the volume. You may need to create it manually using `docker volume create caddy_data`.
-
-Replace `your_cloudflare_api_token` with the actual token you generated.
-
-By following these steps, you'll have a Cloudflare API token configured with the necessary permissions to allow Caddy to manage DNS records for the DNS-01 ACME challenge.
-
 ### ACME DNS Challenge Configuration
 To configure the [ACME DNS challenge](https://caddyserver.com/docs/automatic-https#dns-challenge) provider for all ACME transactions, add the following to your Caddyfile:
 ```
 {
-   acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+   acme_dns pph {env.PPH_API_TOKEN}
 }
 ```
-This configuration sets up the provider to use the Cloudflare DNS module with the API token provided as an environment variable. It ensures that your Caddy server can automatically issue and renew SSL certificates using DNS-01 challenges via Cloudflare.
+This configuration sets up the provider to use the PPH DNS module with the API token provided as an environment variable. It ensures that your Caddy server can automatically issue and renew SSL certificates using DNS-01 challenges via PPH.
 
 This setup is the same as specifying the provider in the [tls directive's ACME issuer](https://caddyserver.com/docs/caddyfile/directives/tls#acme) configuration.
 
@@ -268,19 +173,19 @@ You may encounter `solving challenges: presenting for challenge: adding temporar
 In such cases, try setting custom DNS resolvers like below to bypass resolver issues:
 ```
 tls {
-  dns cloudflare {env.CF_API_TOKEN}
+  dns pph {env.CF_API_TOKEN}
   resolvers 1.1.1.1
 }
 ```
 
-[Official troubleshooting guide](https://github.com/caddy-dns/cloudflare?tab=readme-ov-file#troubleshooting)
+[Official troubleshooting guide](https://github.com/caddy-dns/pph?tab=readme-ov-file#troubleshooting)
 
 ## Tags
 
-The [caddy-cloudflare](https://github.com/caddybuilds/caddy-cloudflare/pkgs/container/caddy-cloudflare) image on GitHub Container Registry and Docker Hub provides the following tags:
+The [caddy-pph](https://github.com/cellebyte/caddy-pph/pkgs/container/caddy-pph) image on GitHub Container Registry and Docker Hub provides the following tags:
 
 - **`latest`**: 
-  - Always points to the most recent stable release of Caddy with the Cloudflare DNS module.
+  - Always points to the most recent stable release of Caddy with the PPH DNS module.
   - Automatically updated to ensure you have the latest features and improvements.
 
 - **`<version>`**:
@@ -288,18 +193,16 @@ The [caddy-cloudflare](https://github.com/caddybuilds/caddy-cloudflare/pkgs/cont
   - Examples include:
     - **`2.7.6`**: Full version tag for Caddy version 2.7.6, ensuring you are using this exact release. 
     
-         (eg: ```docker pull ghcr.io/caddybuilds/caddy-cloudflare:2.8.0``` )
+         (eg: ```docker pull ghcr.io/cellebyte/caddy-pph:2.8.0``` )
     - **`2.7`**: Minor version tag for the latest patch release within the 2.7 series, allowing for minor updates without breaking changes.
-    - **`2`**: Major version tag for the latest release within the 2.x series, providing updates within the major version while maintaining compatibility.
-
-  > **Note:** Starting from version `v2.11.0`, the image also includes the `caddy-cloudflare-ip` module by default.  
+    - **`2`**: Major version tag for the latest release within the 2.x series, providing updates within the major version while maintaining compatibility.  
 
 - `alpine`: Always points to the latest stable release of the Alpine-based image.
   - `<version>-alpine`: Specific version tags for the Alpine-based image (e.g., `2.7.6-alpine`).
 
 ## Platform Support
 
-The `caddybuilds/caddy-cloudflare` image is built to support multiple platforms, ensuring compatibility across a wide range of devices and systems. The supported platforms include:
+The `cellebyte/caddy-pph` image is built to support multiple platforms, ensuring compatibility across a wide range of devices and systems. The supported platforms include:
 
 - **linux/amd64**: Standard x86_64 architecture, commonly used in desktop and server environments.
 - **linux/arm64**: ARM 64-bit architecture, used in many modern servers and high-end ARM devices.
@@ -320,18 +223,17 @@ The Alpine-based image provides a lightweight alternative, based on the popular 
 To use the Alpine-based image, pull it from the GitHub Container Registry or Docker Hub:
 
 ```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:alpine
-docker pull caddybuilds/caddy-cloudflare:alpine
+docker pull ghcr.io/cellebyte/caddy-pph:alpine
 ```
 
 ### Raspberry Pi Support
 
-This Docker image is optimized for Raspberry Pi, allowing you to deploy Caddy with Cloudflare DNS integration on these popular single-board computers. Whether you are using a Raspberry Pi 3 or the latest Raspberry Pi 4, this image provides the necessary support for seamless operation.
+This Docker image is optimized for Raspberry Pi, allowing you to deploy Caddy with PPH DNS integration on these popular single-board computers. Whether you are using a Raspberry Pi 3 or the latest Raspberry Pi 4, this image provides the necessary support for seamless operation.
 
 To use the image on a Raspberry Pi, ensure you are running a compatible operating system (such as Raspberry Pi OS) and have Docker installed. You can then pull the image and run it as you would on any other system:
 
 ```sh
-docker pull ghcr.io/caddybuilds/caddy-cloudflare:latest
+docker pull ghcr.io/cellebyte/caddy-pph:latest
 ```
 # Building Your Own Docker Image
 If you prefer to build your own Docker image, follow these steps:
@@ -339,17 +241,14 @@ If you prefer to build your own Docker image, follow these steps:
 ## Prerequisites
 
 - GitHub account
-- DockerHub account (if you wish to push the image to DockerHub as well)
 - GitHub Secrets configured:
   - `GITHUB_TOKEN` (automatically available in GitHub Actions)
-  - `DOCKERHUB_USERNAME` (optional, if you want to push to DockerHub)
-  - `DOCKERHUB_TOKEN` (optional, if you want to push to DockerHub)
-  - `DOCKERHUB_REPOSITORY_NAME` (optional, can be set as a repository secret or variable to customize the target DockerHub repository)
+  secret or variable to customize the target DockerHub repository)
 
 
 ## Setup Instructions
 
-1. **[Fork this repository](https://github.com/caddybuilds/caddy-cloudflare/fork)** to your GitHub account.
+1. **[Fork this repository](https://github.com/cellebyte/caddy-pph/fork)** to your GitHub account.
 
 2. **Set up GitHub Secrets**:
    - Go to your repository on GitHub.
@@ -399,7 +298,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     environment:
-      - CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+      - PPH_API_TOKEN=your_pph_api_token
 
 volumes:
   caddy_data:
@@ -408,7 +307,7 @@ volumes:
 ```
 Defining the data volume as [external](https://docs.docker.com/compose/compose-file/compose-file-v3/#external) makes sure `docker-compose down` does not delete the volume. You may need to create it manually using `docker volume create caddy_data`.
 
-Replace `YOUR_GITHUB_USERNAME` with your GitHub username and `your_cloudflare_api_token` with your actual Cloudflare API token.
+Replace `YOUR_GITHUB_USERNAME` with your GitHub username and `your_pph_api_token` with your actual PPH API token.
 
 ## Contributing
 
