@@ -158,6 +158,8 @@ jobs:
           docker pull "${IMAGE}"
           echo "Checking caddy version..."
           docker run --rm "${IMAGE}" caddy version
+          echo "Checking pph module is loaded..."
+          docker run --rm "${IMAGE}" caddy list-modules | grep -q "dns.providers.pph"
           echo "Checking cloudflare module is loaded..."
           docker run --rm "${IMAGE}" caddy list-modules | grep -q "dns.providers.cloudflare"
           echo "Build verification passed."
