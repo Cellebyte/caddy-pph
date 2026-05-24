@@ -2,9 +2,11 @@
 ARG CADDY_VERSION
 FROM caddy:${CADDY_VERSION}-builder AS builder
 
-# Build Caddy with the PPH DNS module
+# Build Caddy with the PPH and Cloudflare DNS module
 RUN xcaddy build \
     --with github.com/caddy-dns/pph \
+    --with github.com/caddy-dns/cloudflare \
+    --with github.com/WeidiDeng/caddy-cloudflare-ip \
     --with github.com/fvbommel/caddy-combine-ip-ranges
 
 # Final stage
