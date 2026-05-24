@@ -6,9 +6,11 @@ ARG CADDY_VERSION=2
 FROM --platform=$BUILDPLATFORM caddy:${CADDY_VERSION}-builder AS builder
 ARG TARGETOS TARGETARCH TARGETVARIANT
 
-# Build Caddy with the PPH DNS module
+# Build Caddy with the PPH and Cloudflare DNS module
 RUN xcaddy build \
     --with github.com/caddy-dns/pph \
+    --with github.com/caddy-dns/cloudflare \
+    --with github.com/WeidiDeng/caddy-cloudflare-ip \
     --with github.com/fvbommel/caddy-combine-ip-ranges
 
 # Slim image: our own Alpine base (the official image minus its stock binary) with the
