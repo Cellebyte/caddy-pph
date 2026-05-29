@@ -11,6 +11,7 @@ RUN xcaddy build \
     --with github.com/caddy-dns/pph \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/WeidiDeng/caddy-cloudflare-ip \
+    --with github.com/caddy-dns/hetzner \
     --with github.com/fvbommel/caddy-combine-ip-ranges
 
 # Slim image: our own Alpine base (the official image minus its stock binary) with the
