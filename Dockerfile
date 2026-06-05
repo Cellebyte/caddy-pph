@@ -7,7 +7,7 @@ RUN xcaddy build \
     --with github.com/caddy-dns/pph \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/WeidiDeng/caddy-cloudflare-ip \
-    --with github.com/caddy-dns/hetzner \
+    --with github.com/caddy-dns/hetzner/v2 \
     --with github.com/fvbommel/caddy-combine-ip-ranges
 
 # Final stage
