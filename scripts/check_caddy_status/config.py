@@ -27,6 +27,8 @@ REQUIRED_PLATFORMS = {
 
 # Modules built into the Docker image — must match Dockerfile
 MODULES = [
+    {"module": "github.com/caddy-dns/pph", "repo": "caddy-dns/pph"},
+    {"module": "github.com/caddy-dns/hetzner/v2", "repo": "caddy-dns/hetzner"},
     {"module": "github.com/caddy-dns/cloudflare", "repo": "caddy-dns/cloudflare"},
     {"module": "github.com/WeidiDeng/caddy-cloudflare-ip", "repo": "WeidiDeng/caddy-cloudflare-ip"},
     {"module": "github.com/fvbommel/caddy-combine-ip-ranges", "repo": "fvbommel/caddy-combine-ip-ranges"},
