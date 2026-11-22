@@ -42,7 +42,7 @@ Deploy a hassle-free Caddy server with built-in support for PPH DNS-01 ACME chal
 
 ## Features
 
-- **Automated Builds** -- Daily checks for new Caddy releases with automatic image builds.
+- **Automated Builds** -- Twice-daily checks for new Caddy releases with automatic image builds.
 - **Module Update Detection** -- Tracks upstream module commits and rebuilds when dependencies change.
 - **Base Image Tracking** -- Rebuilds when the base image is republished with OS or Go toolchain fixes.
 - **Cloudflare DNS-01 Integration** -- Automatic SSL certificate management via DNS challenges.
@@ -298,7 +298,7 @@ docker pull ghcr.io/cellebyte/caddy-pph:latest
 
 The build pipeline is fully automated via GitHub Actions and shared with the other CaddyBuilds images through [caddy-base](https://github.com/CaddyBuilds/caddy-base). This repo holds only what is specific to this image: the `Dockerfile` (module list), `caddy-image.json` (title, description, verified module) and three thin workflows that call the shared ones.
 
-1. **Daily release check** -- A scheduled workflow queries the GitHub API for new [Caddy releases](https://github.com/caddyserver/caddy/releases) and verifies the official Docker image is available with all required platforms before triggering a build.
+1. **Release check** -- A workflow scheduled twice daily queries the GitHub API for new [Caddy releases](https://github.com/caddyserver/caddy/releases) and verifies the official Docker image is available with all required platforms before triggering a build. GitHub may delay or drop scheduled runs and disables schedules after 60 days of repository inactivity. Re-enable the workflow in Actions if disabled; it can also be run manually.
 
 2. **Module update detection** -- The pipeline reads the module list from the `Dockerfile` and tracks each module's latest commit SHA in `module-versions.json`. If any module has new commits, a rebuild is triggered even without a new Caddy release.
 
@@ -336,7 +336,7 @@ The build pipeline is fully automated via GitHub Actions and shared with the oth
    - Go to the `Actions` tab. If prompted, click "I understand my workflows, go ahead and enable them".
 
 4. **Customize the modules** (optional):
-   - Add or change `--with` lines in the `Dockerfile`; the daily check follows the list from there. Adjust the title and description in `caddy-image.json` if you like.
+   - Add or change `--with` lines in the `Dockerfile`; the scheduled check follows the list from there. Adjust the title and description in `caddy-image.json` if you like.
 
 5. **Trigger a build** (optional):
    - In the `Actions` tab, select `Build and Push Docker Image` and click `Run workflow`. The optional note is recorded in the release notes.
